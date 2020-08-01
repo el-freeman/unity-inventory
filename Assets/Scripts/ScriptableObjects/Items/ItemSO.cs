@@ -5,11 +5,15 @@ using UnityEngine;
 public enum ItemType
 {
     Food,
-    Equipment,
+    Helmet,
+    Weapon,
+    Shield,
+    Chest,
+    Boots,   
     Default
 }
 
-public enum Attribute
+public enum Attributes
 {
     Strength,
     Intellect,
@@ -19,11 +23,11 @@ public enum Attribute
 
 public abstract class ItemSO : ScriptableObject
 {
-    public int Id;
-    public Sprite uiIcon;  
+    public Sprite uiIcon;
+    public bool isStackable;
     public ItemType type;
     public string description;
-    public ItemBuff[] buffs;
+    public Item data = new Item();
 
     public Item CreateItem()
     {
@@ -37,51 +41,32 @@ public abstract class ItemSO : ScriptableObject
 public class Item
 {
     public string name;
-    public int Id;
+    public int Id = -1;
     public ItemBuff[] buffs;
+    public Item()
+    {
+        name = "";
+        Id = -1;
+    }
 
     public Item(ItemSO item)
     {
         name = item.name;
-        Id = item.Id;
-        buffs = new ItemBuff[item.buffs.Length];
+        Id = item.data.Id;
+        buffs = new ItemBuff[item.data.buffs.Length];
         for (int i = 0; i < buffs.Length; i++)
         {
-            buffs[i] = new ItemBuff(item.buffs[i].min, item.buffs[i].max);
-            buffs[i].attribute = item.buffs[i].attribute;
+            buffs[i] = new ItemBuff(item.data.buffs[i].min, item.data.buffs[i].max);
+            buffs[i].attribute = item.data.buffs[i].attribute;
         }
     }
 
 }
 
-
-//[System.Serializable]
-//public class Item
-//{
-//    public string name;
-//    public int Id;
-//    public ItemBuff[] buffs;
-
-//    public Item(ItemSO item)
-//    {
-//        name = item.name;
-//        Id = item.Id;
-//        buffs = new ItemBuff[item.buffs.Length];
-//        for(int i = 0; i <buffs.Length; i++)
-//        {
-//            buffs[i] = new ItemBuff(item.buffs[i].min, item.buffs[i].max)
-//            {
-//                attribute = item.buffs[i].attribute
-//            };
-//        }
-//    }
-
-//}
-
 [System.Serializable]
-public class ItemBuff
+public class ItemBuff : IModifier
 {
-    public Attribute attribute;
+    public Attributes attribute;
     public int value;
     public int min;
     public int max;
@@ -93,6 +78,12 @@ public class ItemBuff
         GenerateValue();
 
     }
+
+    public void AddValue(ref int baseValue)
+    {
+        baseValue += value;
+    }
+
     public void GenerateValue()
     {
         value = UnityEngine.Random.Range(min, max);
