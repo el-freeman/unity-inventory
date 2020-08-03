@@ -1,13 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {   
     NavMeshAgent navMeshAgent;
     public InventorySO inventory;
     public InventorySO equipment;
+    public Canvas inventoryUI;
+    public TextMeshProUGUI atkText;
+    public TextMeshProUGUI defText;
+    public TextMeshProUGUI hitText;
 
     public Attribute[] attributes;
     public void OnTriggerEnter(Collider other)
@@ -25,6 +31,18 @@ public class PlayerController : MonoBehaviour
     public void AttributeModified(Attribute attribute)
     {
         Debug.Log(string.Concat(attribute.type, " was updated ! Value is now ",attribute.value.ModifiedValue ));
+        switch(attribute.type)
+        {
+            case Attributes.Strength:
+                atkText.text = attribute.value.ModifiedValue.ToString("n0");
+                break;
+            case Attributes.Stamina:
+                defText.text = attribute.value.ModifiedValue.ToString("n0");
+                break;
+            default:
+                break;
+        }
+
     }
     private void OnApplicationQuit()
     {
@@ -50,7 +68,6 @@ public class PlayerController : MonoBehaviour
                             attributes[j].value.RemoveModifier(slot.item.buffs[i]);
                     }
                 }
-
                 break;
             case InterfaceType.Chest:
                 break;
@@ -108,10 +125,14 @@ public class PlayerController : MonoBehaviour
 
         if(Input.GetMouseButton(0))
         {
-            if(Physics.Raycast(ray, out hit, 100))
+           if(MouseData.tempItemBeingDragged == null && !EventSystem.current.IsPointerOverGameObject())
             {
-                navMeshAgent.SetDestination(hit.point);
-            }
+                if (Physics.Raycast(ray, out hit, 100))
+                {
+                    navMeshAgent.SetDestination(hit.point);
+                }
+            }         
+                                    
         }
     }
 
@@ -129,6 +150,23 @@ public class PlayerController : MonoBehaviour
             equipment.Load();
             Debug.Log("load complete");
         }
+        if(Input.GetKeyDown(KeyCode.I))
+        {
+            ToggleUI();
+        }
+    }
+    
+    public void ToggleUI()
+    {
+        if(inventoryUI.gameObject.activeSelf)
+        {
+            inventoryUI.gameObject.SetActive(false);
+        }
+        else
+        {
+            inventoryUI.gameObject.SetActive(true);
+        }
+        
     }
 }
 
