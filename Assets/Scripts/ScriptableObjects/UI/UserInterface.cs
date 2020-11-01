@@ -10,6 +10,8 @@ public abstract class UserInterface : MonoBehaviour
 {  
     public InventorySO inventory; 
     public Dictionary<GameObject, InventorySlot> slotsOnInterface = new Dictionary<GameObject, InventorySlot>();
+    public ItemToolTip Tooltip;
+    public Item hoverdItem;
 
     // Start is called before the first frame update
     void Start()
@@ -40,12 +42,6 @@ public abstract class UserInterface : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    //void Update()
-    //{
-    //    slotsOnInterface.UpdateSlotDisplay();
-    //}
-
     public abstract void CreateSlot();  
     protected void AddEvent(GameObject obj, EventTriggerType type, UnityAction<BaseEventData> action)
     {
@@ -58,11 +54,21 @@ public abstract class UserInterface : MonoBehaviour
 
     public void OnEnter(GameObject obj)
     {
-        MouseData.slotHoveredOver = obj;      
+        MouseData.slotHoveredOver = obj;       
+        hoverdItem = slotsOnInterface[obj].item;
+        if (hoverdItem.Id >= 0)
+        {           
+            Tooltip.gameObject.SetActive(true);
+            Tooltip.Name.text = hoverdItem.name;
+            Tooltip.DescriptionText.text = slotsOnInterface[obj].ItemObject.description;
+        }
     }
     public void OnExit(GameObject obj)
     {
         MouseData.slotHoveredOver = null;
+        hoverdItem = null;        
+        Tooltip.gameObject.SetActive(false);          
+        
     }
     public void OnEnterInterface(GameObject obj)
     {
@@ -93,6 +99,7 @@ public abstract class UserInterface : MonoBehaviour
     }
     public void OnDragEnd(GameObject obj)
     {
+        hoverdItem = slotsOnInterface[obj].item;
         Destroy(MouseData.tempItemBeingDragged);
         if(MouseData.interfaceMouseIsOver == null)
         {
@@ -103,8 +110,18 @@ public abstract class UserInterface : MonoBehaviour
         {
             InventorySlot mouseHoverSlotData = MouseData.interfaceMouseIsOver.slotsOnInterface[MouseData.slotHoveredOver];
             inventory.SwapItems(slotsOnInterface[obj], mouseHoverSlotData);
+            
+            if (hoverdItem.Id >= 0)
+            {
+                Debug.Log("tooltip open when drag ends");
+                Tooltip.gameObject.SetActive(true);
+                Tooltip.Name.text = hoverdItem.name;
+                //Tooltip.DescriptionText.text = slotsOnInterface[obj].ItemObject.description;
+                Tooltip.DescriptionText.text = mouseHoverSlotData.ItemObject.description;
+            }
         }
-        
+       
+
     }
     public void OnDrag(GameObject obj)
     {

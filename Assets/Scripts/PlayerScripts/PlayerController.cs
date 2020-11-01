@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {   
@@ -13,7 +14,10 @@ public class PlayerController : MonoBehaviour
     public Canvas inventoryUI;
     public TextMeshProUGUI atkText;
     public TextMeshProUGUI defText;
-    public TextMeshProUGUI hitText;
+    public TextMeshProUGUI hitText;   
+    public Button groundItemName;
+    public Animator anim;
+    public float attackRange = 10f;    
 
     public Attribute[] attributes;
     public void OnTriggerEnter(Collider other)
@@ -106,6 +110,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
+        anim = GetComponent<Animator>();
         for(int i = 0; i < attributes.Length; i++)
         {
             attributes[i].SetParent(this);
@@ -116,28 +121,99 @@ public class PlayerController : MonoBehaviour
             equipment.GetSlots[i].OnAfterUpdate += OnAfterSlotUpdate;
         }
     }
-
+  
     // Update is called once per frame
     void FixedUpdate()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (MouseData.tempItemBeingDragged == null && !EventSystem.current.IsPointerOverGameObject())
+            {
+                if (Physics.Raycast(ray, out hit, 100))
+                {
+                    var getEnemy = hit.collider.CompareTag("Enemy");
+                    var distance = Vector3.Distance(transform.position, hit.point);                 
+                    
+                    if (getEnemy)
+                    {           
+                        if(distance <= attackRange)
+                        {
+                            navMeshAgent.SetDestination(this.transform.position);
+                            LookatSlerp(hit);
+                            anim.SetBool("isShooting", true);
+                            //Debug.Log("attack");              
+
+                            
+
+                        }
+                        else
+                        {
+                            navMeshAgent.SetDestination(Vector3.MoveTowards(this.transform.position, hit.point, distance-attackRange));
+                            LookatSlerp(hit);
+                        }
+                    }
+                    else
+                    {
+                        // Debug.Log("is running TRUE");
+                        anim.SetBool("isRunning", true);
+                        navMeshAgent.SetDestination(hit.point);
+                    }
+                    
+                }
+            }
+        }
+        else if (navMeshAgent.hasPath)
+        {
+            anim.SetBool("isShooting", false);
+            anim.SetBool("isRunning", true);
+        }
+        else
+        {
+            anim.SetBool("isShooting", false);
+            anim.SetBool("isRunning", false);
+        }
+    }
+
+    private void LookatSlerp(RaycastHit hit)
+    {
+        Vector3 dir = hit.collider.transform.position - transform.position;
+        Quaternion toRotation = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 30 * Time.deltaTime);
+    }
+
+    private void ShowGroundItemNameOnMouseOver()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if(Input.GetMouseButton(0))
+        if (Physics.Raycast(ray, out hit, 100))
         {
-           if(MouseData.tempItemBeingDragged == null && !EventSystem.current.IsPointerOverGameObject())
+            var groundItem = hit.collider.gameObject;
+            var groundItemComponent = groundItem.GetComponent<GroundItem>();
+            Vector3 offset = new Vector3(0, 20, 0);
+
+            if (groundItemComponent && !EventSystem.current.IsPointerOverGameObject())
             {
-                if (Physics.Raycast(ray, out hit, 100))
-                {
-                    navMeshAgent.SetDestination(hit.point);
-                }
-            }         
-                                    
+                //Debug.Log("item is pointed now" + groundItem.name);               
+                groundItemName.gameObject.SetActive(true);
+                var screenPos = Camera.main.WorldToScreenPoint(groundItem.transform.position);
+                groundItemName.transform.position = screenPos + offset;
+                var text = groundItemName.gameObject.GetComponentInChildren<TextMeshProUGUI>();
+                text.text = groundItem.name;
+            }
+            if (groundItemComponent == null)
+            {
+                groundItemName.gameObject.SetActive(false);              
+            }
         }
     }
 
     private void Update()
     {
+        ShowGroundItemNameOnMouseOver();
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             inventory.Save();

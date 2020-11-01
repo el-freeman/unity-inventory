@@ -26,6 +26,7 @@ public abstract class ItemSO : ScriptableObject
     public Sprite uiIcon;
     public bool isStackable;
     public ItemType type;
+    [TextArea(15, 20)]
     public string description;
     public Item data = new Item();
 
@@ -33,8 +34,7 @@ public abstract class ItemSO : ScriptableObject
     {
         Item newItem = new Item(this);
         return newItem;
-    }
-   
+    }   
 }
 
 [System.Serializable]
@@ -59,7 +59,7 @@ public class Item
             buffs[i] = new ItemBuff(item.data.buffs[i].min, item.data.buffs[i].max);
             buffs[i].attribute = item.data.buffs[i].attribute;
         }
-    }
+    }  
 
 }
 
