@@ -16,8 +16,12 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI defText;
     public TextMeshProUGUI hitText;   
     public Button groundItemName;
-    public Animator anim;
-    public float attackRange = 10f;    
+    public Animator anim; 
+    public float attackRange = 15f;
+
+    bool isMoveAndShoot = false;
+
+    public Shooting shooting;
 
     public Attribute[] attributes;
     public void OnTriggerEnter(Collider other)
@@ -129,12 +133,14 @@ public class PlayerController : MonoBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
+            
             if (MouseData.tempItemBeingDragged == null && !EventSystem.current.IsPointerOverGameObject())
-            {
+            {               
                 if (Physics.Raycast(ray, out hit, 100))
                 {
                     var getEnemy = hit.collider.CompareTag("Enemy");
-                    var distance = Vector3.Distance(transform.position, hit.point);                 
+                    var distance = Vector3.Distance(transform.position, hit.point);
+                    
                     
                     if (getEnemy)
                     {           
@@ -142,16 +148,16 @@ public class PlayerController : MonoBehaviour
                         {
                             navMeshAgent.SetDestination(this.transform.position);
                             LookatSlerp(hit);
-                            anim.SetBool("isShooting", true);
-                            //Debug.Log("attack");              
-
-                            
+                            anim.SetBool("isShooting", true);                        
+                            //Debug.Log("attack");           
+                            shooting.Shoot();                                                      
 
                         }
                         else
                         {
                             navMeshAgent.SetDestination(Vector3.MoveTowards(this.transform.position, hit.point, distance-attackRange));
                             LookatSlerp(hit);
+                            isMoveAndShoot = true;                          
                         }
                     }
                     else
@@ -159,8 +165,7 @@ public class PlayerController : MonoBehaviour
                         // Debug.Log("is running TRUE");
                         anim.SetBool("isRunning", true);
                         navMeshAgent.SetDestination(hit.point);
-                    }
-                    
+                    }                    
                 }
             }
         }
@@ -168,6 +173,13 @@ public class PlayerController : MonoBehaviour
         {
             anim.SetBool("isShooting", false);
             anim.SetBool("isRunning", true);
+        }
+        else if(isMoveAndShoot)
+        {
+            anim.SetBool("isShooting", true);
+            anim.SetBool("isRunning", false);
+            shooting.Shoot();
+            isMoveAndShoot = false;
         }
         else
         {
@@ -180,7 +192,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 dir = hit.collider.transform.position - transform.position;
         Quaternion toRotation = Quaternion.LookRotation(dir);
-        transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 30 * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 35 * Time.deltaTime);
     }
 
     private void ShowGroundItemNameOnMouseOver()
