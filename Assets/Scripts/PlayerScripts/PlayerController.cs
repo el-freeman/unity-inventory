@@ -138,15 +138,14 @@ public class PlayerController : MonoBehaviour
             {               
                 if (Physics.Raycast(ray, out hit, 100))
                 {
-                    var getEnemy = hit.collider.CompareTag("Enemy");
-                    var distance = Vector3.Distance(transform.position, hit.point);
-                    
+                    bool getEnemy = hit.collider.CompareTag("Enemy");
+                    float distance = Vector3.Distance(transform.position, hit.point);                    
                     
                     if (getEnemy)
                     {           
                         if(distance <= attackRange)
                         {
-                            navMeshAgent.SetDestination(this.transform.position);
+                            navMeshAgent.SetDestination(transform.position);
                             LookatSlerp(hit);
                             anim.SetBool("isShooting", true);                        
                             //Debug.Log("attack");           
