@@ -19,36 +19,37 @@ public class Shooting : MonoBehaviour
     }
     private void Start()
     {
-        //fireEffect.SetActive(false);
+        fireEffect.SetActive(false);
         bulletLine.positionCount = 2;
         bulletLine.enabled = false;      
 
     }
-    public void Shoot()
+    public void Shoot(int damage)
     {        
         RaycastHit hit;
         Vector3 hitPosition = Vector3.zero;        
 
         if (Physics.Raycast(gunPoint.position, gunPoint.forward, out hit, attackRange, shootableMask))
         {
-            StartCoroutine(ShotEffect(hit.point));
+            StartCoroutine(ShotEffect(hit.point, damage));
         }       
     }
 
-    private IEnumerator ShotEffect(Vector3 hitPosition)
+    private IEnumerator ShotEffect(Vector3 hitPosition, int damage)
     {
         
         bulletLine.SetPosition(0, gunPoint.position);
         bulletLine.SetPosition(1, hitPosition);
 
-        yield return new WaitForSeconds(0.04f);
+        yield return new WaitForSeconds(0.035f);
 
         fireEffect.transform.position = gunPoint.position + effctOffset;
-        fireEffect.SetActive(true);   
+        fireEffect.SetActive(true);
+        DamageUI.Instance.NewDamage(damage, hitPosition);
 
         bulletLine.enabled = true;
 
-        yield return new WaitForSeconds(0.08f);
+        yield return new WaitForSeconds(0.07f);
         bulletLine.enabled = false;
         fireEffect.SetActive(false);
 

@@ -149,7 +149,7 @@ public class PlayerController : MonoBehaviour
                             LookatSlerp(hit);
                             anim.SetBool("isShooting", true);                        
                             //Debug.Log("attack");           
-                            shooting.Shoot();                                                      
+                            shooting.Shoot(int.Parse(atkText.text));                                                      
 
                         }
                         else
@@ -162,6 +162,7 @@ public class PlayerController : MonoBehaviour
                     else
                     {
                         // Debug.Log("is running TRUE");
+                        anim.SetBool("isShooting", false);
                         anim.SetBool("isRunning", true);
                         navMeshAgent.SetDestination(hit.point);
                     }                    
@@ -177,7 +178,7 @@ public class PlayerController : MonoBehaviour
         {
             anim.SetBool("isShooting", true);
             anim.SetBool("isRunning", false);
-            shooting.Shoot();
+            shooting.Shoot(int.Parse(atkText.text));
             isMoveAndShoot = false;
         }
         else
